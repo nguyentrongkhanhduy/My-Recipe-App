@@ -22,7 +22,9 @@ export const RecipeDetailScreen = ({ navigation, route }) => {
   const [recipeDetail, setRecipeDetail] = useState({});
   const [summaryExpand, setSummaryExpand] = useState(false);
   const [nutritionExpand, setNutritionExpand] = useState(false);
+  const [loading, setLoading] = useState(true);
 
+  //set nav bar buttons
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => {
@@ -50,9 +52,13 @@ export const RecipeDetailScreen = ({ navigation, route }) => {
       .get(
         `https://api.spoonacular.com/recipes/${id}/information?apiKey=${SPOONACULAR_API_KEY}&includeNutrition=true`
       )
-      .then((response) => setRecipeDetail(response.data))
+      .then((response) => {
+        setRecipeDetail(response.data);
+        setLoading(false);
+      })
       .catch((error) => {
         console.error("API Error:", error);
+        setLoading(false);
       });
   }, []);
 
@@ -78,6 +84,11 @@ export const RecipeDetailScreen = ({ navigation, route }) => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+      )}
       <View style={{ padding: 16 }}>
         <Text style={styles.title}>{recipeDetail.title}</Text>
         <TouchableOpacity
@@ -188,6 +199,18 @@ export const RecipeDetailScreen = ({ navigation, route }) => {
 const screenWidth = Dimensions.get("window").width;
 
 const styles = StyleSheet.create({
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject, 
+    backgroundColor: "rgba(255, 255, 255, 0.6)", // semi-transparent white
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
+  },
+  loadingText: {
+    color: "#333",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
   container: {
     flexGrow: 1,
     backgroundColor: "#fff",
