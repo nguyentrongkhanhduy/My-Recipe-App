@@ -16,7 +16,7 @@ export const RecipeListDetaiSearchResultlStack = () => {
         title: "",
         headerBackButtonDisplayMode: "minimal",
         headerTintColor: Colors.red,
-        headerTitleAlign: "center",
+        // headerTitleAlign: "center",
         contentStyle: {
           backgroundColor: "white",
         },
