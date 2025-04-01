@@ -28,6 +28,7 @@ export const RecipeDetailScreen = ({ navigation, route }) => {
   const [nutritionExpand, setNutritionExpand] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showTitle, setShowTitle] = useState(false);
+
   //set nav bar buttons
   useEffect(() => {
     navigation.setOptions({
@@ -114,6 +115,19 @@ export const RecipeDetailScreen = ({ navigation, route }) => {
         <Text style={{ fontWeight: "bold" }}>{step}</Text>
         <Text style={{ flex: 1 }}>{description}</Text>
       </View>
+    );
+  };
+
+  const renderStepRows = () => {
+    let globalStep = 1;
+    return recipeDetail.analyzedInstructions?.flatMap((instruction) =>
+      instruction.steps.map((step, index) => (
+        <StepRow
+          key={`${step.step}-${globalStep}`}
+          step={globalStep++}
+          description={step.step}
+        />
+      ))
     );
   };
 
@@ -242,15 +256,7 @@ export const RecipeDetailScreen = ({ navigation, route }) => {
       <View style={styles.stepContainer}>
         <Text style={{ fontSize: 20, fontWeight: "bold" }}>Step by step</Text>
 
-        {recipeDetail.analyzedInstructions?.[0]?.steps?.map((step, index) => {
-          return (
-            <StepRow
-              key={`${step.step} - ${index}`}
-              step={step.number}
-              description={step.step}
-            />
-          );
-        })}
+        {renderStepRows()}
       </View>
     </ScrollView>
   );

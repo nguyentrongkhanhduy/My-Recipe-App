@@ -24,7 +24,10 @@ export const RecipeListScreen = ({ navigation, route }) => {
     navigation.setOptions({
       headerTitle: () => {
         return (
-          <TouchableOpacity style={styles.searchBarContainer}>
+          <TouchableOpacity
+            style={styles.searchBarContainer}
+            onPress={() => navigation.navigate("RecipeSearchScreen")}
+          >
             <Ionicons
               name="search-outline"
               size={16}
@@ -39,32 +42,32 @@ export const RecipeListScreen = ({ navigation, route }) => {
   }, []);
 
   //get list recipe
-  useEffect(() => {
-    axios
-      .get(
-        `https://api.spoonacular.com/recipes/complexSearch?apiKey=${SPOONACULAR_API_KEY}&number=2&addRecipeInformation=true&addRecipeInstructions=true&addRecipeNutrition=true&fillIngredients=true`
-      )
-      .then((response) => {
-        setRecipes(response.data.results);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("API Error:", error);
-        setLoading(false);
-      });
-  }, []);
+  // useEffect(() => {
+  //   axios
+  //     .get(
+  //       `https://api.spoonacular.com/recipes/complexSearch?apiKey=${SPOONACULAR_API_KEY}&number=1&addRecipeInformation=true`
+  //     )
+  //     .then((response) => {
+  //       setRecipes(response.data.results);
+  //       setLoading(false);
+  //     })
+  //     .catch((error) => {
+  //       console.error("API Error:", error);
+  //       setLoading(false);
+  //     });
+  // }, []);
 
   //get 1 random Recipe
-  useEffect(() => {
-    axios
-      .get(
-        `https://api.spoonacular.com/recipes/random?apiKey=${SPOONACULAR_API_KEY}&number=1`
-      )
-      .then((response) => setRndRecipe(response.data.recipes[0]))
-      .catch((error) => {
-        console.error("API Error:", error);
-      });
-  }, []);
+  // useEffect(() => {
+  //   axios
+  //     .get(
+  //       `https://api.spoonacular.com/recipes/random?apiKey=${SPOONACULAR_API_KEY}&number=1`
+  //     )
+  //     .then((response) => setRndRecipe(response.data.recipes[0]))
+  //     .catch((error) => {
+  //       console.error("API Error:", error);
+  //     });
+  // }, []);
 
   const BigItem = ({ recipe, onPressRecipe }) => {
     return (

@@ -50,7 +50,13 @@ export const RecipeGrid = ({ recipe, onPressRecipe }) => {
   return (
     <TouchableOpacity style={styles.gridItem} onPress={onPressRecipe}>
       <Image source={{ uri: recipe.image }} style={styles.recipeImage} />
-      <Text style={styles.recipeTime}>{recipe.readyInMinutes} mins</Text>
+      <Text style={styles.recipeTime}>
+        {recipe.readyInMinutes >= 60
+          ? `${Math.floor(recipe.readyInMinutes / 60)} h ${
+              recipe.readyInMinutes % 60
+            } mins`
+          : `${recipe.readyInMinutes} mins`}
+      </Text>
       <Text style={styles.recipeTitle}>{recipe.title}</Text>
       <Caption />
     </TouchableOpacity>
