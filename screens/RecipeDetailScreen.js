@@ -16,14 +16,18 @@ import { SPOONACULAR_API_KEY } from "@env";
 
 import Colors from "../Constant";
 import { cleanSummary } from "../Constant";
+import { RecipeCard } from "../components/RecipeCard";
 
 export const RecipeDetailScreen = ({ navigation, route }) => {
   const { id } = route.params;
+
   const [recipeDetail, setRecipeDetail] = useState({});
+  const [similarRecipes, setSimilarRecipes] = useState([]);
+
   const [summaryExpand, setSummaryExpand] = useState(false);
   const [nutritionExpand, setNutritionExpand] = useState(false);
   const [loading, setLoading] = useState(true);
-
+  const [showTitle, setShowTitle] = useState(false);
   //set nav bar buttons
   useEffect(() => {
     navigation.setOptions({
@@ -46,6 +50,23 @@ export const RecipeDetailScreen = ({ navigation, route }) => {
     });
   }, []);
 
+  //set title
+  useEffect(() => {
+    navigation.setOptions({
+      title: showTitle ? recipeDetail.title : "",
+      headerTitleStyle: showTitle
+        ? {
+            fontWeight: "bold",
+            fontSize: 18,
+            maxWidth: "70%",
+            textAlign: "center",
+            alignSelf: "center",
+          }
+        : {},
+      headerTitleAlign: "center",
+    });
+  }, [showTitle, recipeDetail.title]);
+
   //get recipe by id
   useEffect(() => {
     axios
@@ -59,6 +80,20 @@ export const RecipeDetailScreen = ({ navigation, route }) => {
       .catch((error) => {
         console.error("API Error:", error);
         setLoading(false);
+      });
+  }, []);
+
+  //get similar recipe
+  useEffect(() => {
+    axios
+      .get(
+        `https://api.spoonacular.com/recipes/${id}/similar?apiKey=${SPOONACULAR_API_KEY}&number=7`
+      )
+      .then((response) => {
+        setSimilarRecipes(response.data);
+      })
+      .catch((error) => {
+        console.error("API Error:", error);
       });
   }, []);
 
@@ -83,7 +118,14 @@ export const RecipeDetailScreen = ({ navigation, route }) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      onScroll={(e) => {
+        const offsetY = e.nativeEvent.contentOffset.y;
+        setShowTitle(offsetY > 60);
+      }}
+      scrollEventThrottle={16}
+    >
       {loading && (
         <View style={styles.loadingOverlay}>
           <Text style={styles.loadingText}>Loading...</Text>
@@ -177,6 +219,24 @@ export const RecipeDetailScreen = ({ navigation, route }) => {
             ))}
           </TouchableOpacity>
         )}
+
+        <Text style={{ fontSize: 20, fontWeight: "bold", marginTop: 20 }}>
+          Related Recipes
+        </Text>
+        <FlatList
+          data={similarRecipes}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <RecipeCard
+              recipe={item}
+              onPressRecipe={() => {
+                navigation.push("RecipeDetailScreen", item);
+              }}
+            />
+          )}
+        />
       </View>
 
       <View style={styles.stepContainer}>
@@ -200,7 +260,7 @@ const screenWidth = Dimensions.get("window").width;
 
 const styles = StyleSheet.create({
   loadingOverlay: {
-    ...StyleSheet.absoluteFillObject, 
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(255, 255, 255, 0.6)", // semi-transparent white
     justifyContent: "center",
     alignItems: "center",

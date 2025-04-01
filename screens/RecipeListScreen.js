@@ -6,7 +6,6 @@ import {
   FlatList,
   Image,
   Dimensions,
-  ScrollView,
 } from "react-native";
 import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,6 +13,7 @@ import { SPOONACULAR_API_KEY } from "@env";
 import axios from "axios";
 
 import Colors from "../Constant";
+import { RecipeGrid } from "../components/RecipeGrid";
 
 export const RecipeListScreen = ({ navigation, route }) => {
   const [recipes, setRecipes] = useState([]);
@@ -66,53 +66,6 @@ export const RecipeListScreen = ({ navigation, route }) => {
       });
   }, []);
 
-  const GridRecipe = ({ recipe, onPressRecipe }) => {
-    const Caption = () => {
-      {
-        if (recipe.cheap) {
-          return (
-            <View style={styles.captionContainer}>
-              <Ionicons name="pricetag" size={14} color={Colors.teal} />
-              <Text style={styles.captionText}>Affordable</Text>
-            </View>
-          );
-        } else if (recipe.veryPopular) {
-          return (
-            <View style={styles.captionContainer}>
-              <Ionicons name="flame" size={14} color={Colors.teal} />
-              <Text style={styles.captionText}>Popular</Text>
-            </View>
-          );
-        } else if (recipe.readyInMinutes < 30) {
-          return (
-            <View style={styles.captionContainer}>
-              <Ionicons name="alarm" size={14} color={Colors.teal} />
-              <Text style={styles.captionText}>Under 30 min</Text>
-            </View>
-          );
-        } else if (recipe.veryHealthy) {
-          return (
-            <View style={styles.captionContainer}>
-              <Ionicons name="heart" size={14} color={Colors.teal} />
-              <Text style={styles.captionText}>Healthy</Text>
-            </View>
-          );
-        } else {
-          return null;
-        }
-      }
-    };
-
-    return (
-      <TouchableOpacity style={styles.gridItem} onPress={onPressRecipe}>
-        <Image source={{ uri: recipe.image }} style={styles.recipeImage} />
-        <Text style={styles.recipeTime}>{recipe.readyInMinutes} mins</Text>
-        <Text style={styles.recipeTitle}>{recipe.title}</Text>
-        <Caption />
-      </TouchableOpacity>
-    );
-  };
-
   const BigItem = ({ recipe, onPressRecipe }) => {
     return (
       <TouchableOpacity style={styles.bigItemContainer} onPress={onPressRecipe}>
@@ -135,7 +88,7 @@ export const RecipeListScreen = ({ navigation, route }) => {
         keyExtractor={(recipe) => recipe.id.toString()}
         renderItem={(recipe) => {
           return (
-            <GridRecipe
+            <RecipeGrid
               recipe={recipe.item}
               onPressRecipe={() => {
                 navigation.navigate("RecipeDetailScreen", recipe.item);
@@ -239,7 +192,7 @@ const styles = StyleSheet.create({
     width: itemWidth,
   },
   recipeImage: {
-    borderRadius: 12,
+    borderRadius: 8,
     width: itemWidth,
     height: itemWidth,
   },
