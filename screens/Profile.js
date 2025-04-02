@@ -90,7 +90,7 @@ export const Profile = ({ navigation }) => {
   }
 
   const filteredRecipes = savedRecipes.filter((r) =>
-    r.title.toLowerCase().includes(queryText.toLowerCase())
+    r.title.toLowerCase().includes(queryText.trim().toLowerCase())
   );
 
   return (
@@ -149,12 +149,22 @@ export const Profile = ({ navigation }) => {
               <Text style={styles.activeTab}>Saved Recipes</Text>
             </View>
 
-            <TextInput
-              style={styles.search}
-              placeholder="Search Saved Recipes"
-              value={queryText}
-              onChangeText={setQueryText}
-            />
+            <View style={{ position: "relative", margin: 15 }}>
+              <TextInput
+                style={styles.search}
+                placeholder="Search Saved Recipes"
+                value={queryText}
+                onChangeText={setQueryText}
+              />
+              {queryText.length > 0 && (
+                <TouchableOpacity
+                  style={styles.clearButton}
+                  onPress={() => setQueryText("")}
+                >
+                  <Text style={styles.clearButtonText}>×</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </>
         }
         renderItem={({ item }) => (
@@ -178,6 +188,11 @@ export const Profile = ({ navigation }) => {
           </TouchableOpacity>
         )}
       />
+      {filteredRecipes.length === 0 && (
+        <View style={{ alignItems: "center", marginTop: 20 }}>
+          <Text style={{ color: "#888" }}>No recipes found.</Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -296,4 +311,20 @@ const styles = StyleSheet.create({
   },
   recipeText: { marginTop: 8, color: "#444", fontSize: 12 },
   recipeTitle: { fontWeight: "bold", marginTop: 5, fontSize: 14 },
+  clearButton: {
+    position: "absolute",
+    right: 25,
+    top: 25,
+    backgroundColor: "#ccc",
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  clearButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    lineHeight: 20,
+  },
 });
