@@ -1,7 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { RecipeListDetaiSearchResultlStack } from "./RecipeListDetailSearchResultStack";
-import { Profile } from "../screens/Profile";
+import { ProfileStack } from "./ProfileStack"; // <-- Import the new stack
 import Colors from "../Constant";
 
 const BottomTab = createBottomTabNavigator();
@@ -27,9 +27,10 @@ export const RecipeProfileTab = () => {
         }}
       />
       <BottomTab.Screen
-        component={Profile}
-        name="Profile"
+        component={ProfileStack} // <-- Use the stack
+        name="ProfileTab"
         options={{
+          headerShown: false,
           tabBarLabel: "Profile",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-outline" color={color} size={size} />
