@@ -38,7 +38,10 @@ export const Profile = ({ navigation }) => {
     const fetchUserData = async () => {
       if (!user) return;
 
-      const q = query(collection(db, "members"), where("email", "==", user.email));
+      const q = query(
+        collection(db, "members"),
+        where("email", "==", user.email)
+      );
       const snapshot = await getDocs(q);
       const userDoc = snapshot.docs[0];
 
@@ -91,12 +94,17 @@ export const Profile = ({ navigation }) => {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff", paddingTop: insets.top + 10 }}>
+    <View
+      style={{ flex: 1, backgroundColor: "#fff", paddingTop: insets.top + 10 }}
+    >
       <FlatList
         data={filteredRecipes}
         keyExtractor={(item) => item.id.toString()}
         numColumns={2}
-        columnWrapperStyle={{ justifyContent: "space-between", marginBottom: 16 }}
+        columnWrapperStyle={{
+          justifyContent: "space-between",
+          marginBottom: 16,
+        }}
         contentContainerStyle={{
           paddingBottom: 30,
           backgroundColor: "#fff",
@@ -105,25 +113,27 @@ export const Profile = ({ navigation }) => {
         ListHeaderComponent={
           <>
             <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-            <TouchableOpacity
-              style={styles.logoutButton}
-              onPress={() => {
-                Alert.alert("Log Out", "Are you sure you want to log out?", [
-                  { text: "Cancel", style: "cancel" },
-                  {
-                    text: "Log Out",
-                    style: "destructive",
-                    onPress: () => {
-                      auth.signOut().catch((err) =>
-                        console.error("Logout error:", err.message)
-                      );
+              <TouchableOpacity
+                style={styles.logoutButton}
+                onPress={() => {
+                  Alert.alert("Log Out", "Are you sure you want to log out?", [
+                    { text: "Cancel", style: "cancel" },
+                    {
+                      text: "Log Out",
+                      style: "destructive",
+                      onPress: () => {
+                        auth
+                          .signOut()
+                          .catch((err) =>
+                            console.error("Logout error:", err.message)
+                          );
+                      },
                     },
-                  },
-                ]);
-              }}
-            >
-              <Text style={styles.logoutButtonText}>Log Out</Text>
-            </TouchableOpacity>
+                  ]);
+                }}
+              >
+                <Text style={styles.logoutButtonText}>Log Out</Text>
+              </TouchableOpacity>
 
               <View style={styles.headerContent}>
                 <View style={styles.avatar}>
@@ -185,6 +195,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textAlign: "center",
     marginVertical: 20,
+    width: "80%",
   },
   button: {
     backgroundColor: Colors.red,
@@ -277,7 +288,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     zIndex: 10,
   },
-  
+
   logoutButtonText: {
     color: "#fff",
     fontWeight: "bold",

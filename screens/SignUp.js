@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from "react-native";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { collection, addDoc } from "firebase/firestore";
 import { auth, db } from "../config/FirebaseConfig";
@@ -12,7 +19,11 @@ export const SignUp = ({ navigation }) => {
 
   const handleSignUp = async () => {
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const user = userCredential.user;
 
       await addDoc(collection(db, "members"), {
@@ -29,38 +40,94 @@ export const SignUp = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-        <TouchableOpacity
+      {/* <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
-        >
-            <Text style={styles.backText}>← Back</Text>
-        </TouchableOpacity>
+      >
+        <Text style={styles.backText}>← Back</Text>
+      </TouchableOpacity> */}
       <Text style={styles.emoji}>😍</Text>
-      <Text style={styles.title}>Create an account to save your favorite recipes</Text>
+      <Text style={styles.title}>
+        Create an account to save your favorite recipes
+      </Text>
 
-      <TextInput style={styles.input} placeholder="Display Name" value={displayName} onChangeText={setDisplayName} />
-      <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
-      <TextInput style={styles.input} placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} />
+      <TextInput
+        style={styles.input}
+        placeholder="Display Name"
+        value={displayName}
+        onChangeText={setDisplayName}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        keyboardType="email-address"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Password"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+        autoCapitalize="none"
+      />
 
       <TouchableOpacity style={styles.button} onPress={handleSignUp}>
         <Text style={styles.buttonText}>Sign up</Text>
       </TouchableOpacity>
 
       <Text style={styles.agreement}>
-        By signing up, you agree to our <Text style={styles.link}>User Agreement</Text> and <Text style={styles.link}>Privacy Policy</Text>.
+        By signing up, you agree to our{" "}
+        <Text style={styles.link}>User Agreement</Text> and{" "}
+        <Text style={styles.link}>Privacy Policy</Text>.
       </Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { backgroundColor: "#fff", flex: 1, alignItems: "center", paddingHorizontal: 30, justifyContent: "center" },
+  container: {
+    backgroundColor: "#fff",
+    flex: 1,
+    alignItems: "center",
+    paddingHorizontal: 30,
+    justifyContent: "center",
+  },
   emoji: { fontSize: 60 },
-  title: { fontSize: 18, fontWeight: "600", textAlign: "center", marginVertical: 20, color: "#000" },
-  input: { width: "100%", borderWidth: 1, borderColor: "#ccc", borderRadius: 8, paddingVertical: 10, paddingHorizontal: 15, marginVertical: 8, fontSize: 16 },
-  button: { backgroundColor: Colors.red, width: "100%", paddingVertical: 15, borderRadius: 8, marginVertical: 12, alignItems: "center" },
+  title: {
+    fontSize: 18,
+    fontWeight: "600",
+    textAlign: "center",
+    marginVertical: 20,
+    color: "#000",
+  },
+  input: {
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    marginVertical: 8,
+    fontSize: 16,
+  },
+  button: {
+    backgroundColor: Colors.red,
+    width: "100%",
+    paddingVertical: 15,
+    borderRadius: 8,
+    marginVertical: 12,
+    alignItems: "center",
+  },
   buttonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
-  agreement: { fontSize: 12, textAlign: "center", color: "#333", marginTop: 10 },
+  agreement: {
+    fontSize: 12,
+    textAlign: "center",
+    color: "#333",
+    marginTop: 10,
+  },
   link: { color: Colors.red, fontWeight: "500" },
   backButton: {
     position: "absolute",

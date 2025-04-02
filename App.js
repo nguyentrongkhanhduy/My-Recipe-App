@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-
+import { StatusBar } from "expo-status-bar";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
 
