@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Alert,
   Dimensions,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../config/FirebaseConfig";
@@ -34,43 +35,42 @@ export const Profile = ({ navigation }) => {
     return unsubscribe;
   }, []);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (!user) return;
-
-      const q = query(
-        collection(db, "members"),
-        where("email", "==", user.email)
-      );
-      const snapshot = await getDocs(q);
-      const userDoc = snapshot.docs[0];
-
-      if (userDoc) {
-        const userData = userDoc.data();
-        console.log("✅ userData from Firestore:", userData);
-        setDisplayName(userData.displayName);
-        const favoriteIds = userData.favorites || [];
-
-        const fetchedRecipes = await Promise.all(
-          favoriteIds.map(async (id) => {
-            try {
-              const res = await axios.get(
-                `https://api.spoonacular.com/recipes/${id}/information?apiKey=${SPOONACULAR_API_KEY}`
-              );
-              return res.data;
-            } catch (err) {
-              console.error("Failed to fetch recipe:", err);
-              return null;
-            }
-          })
-        );
-
-        setSavedRecipes(fetchedRecipes.filter((r) => r !== null));
-      }
-    };
-
-    fetchUserData();
-  }, [user]);
+  useFocusEffect(
+    useCallback(() => {
+      const fetchUserData = async () => {
+        if (!user) return;
+  
+        const q = query(collection(db, "members"), where("email", "==", user.email));
+        const snapshot = await getDocs(q);
+        const userDoc = snapshot.docs[0];
+  
+        if (userDoc) {
+          const userData = userDoc.data();
+          console.log("✅ userData from Firestore:", userData);
+          setDisplayName(userData.displayName);
+          const favoriteIds = userData.favorites || [];
+  
+          const fetchedRecipes = await Promise.all(
+            favoriteIds.map(async (id) => {
+              try {
+                const res = await axios.get(
+                  `https://api.spoonacular.com/recipes/${id}/information?apiKey=${SPOONACULAR_API_KEY}`
+                );
+                return res.data;
+              } catch (err) {
+                console.error("Failed to fetch recipe:", err);
+                return null;
+              }
+            })
+          );
+  
+          setSavedRecipes(fetchedRecipes.filter((r) => r !== null));
+        }
+      };
+  
+      fetchUserData();
+    }, [user])
+  );
 
   if (!user) {
     return (

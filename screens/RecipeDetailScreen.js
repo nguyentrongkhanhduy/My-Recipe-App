@@ -17,6 +17,9 @@ import { SPOONACULAR_API_KEY } from "@env";
 import Colors from "../Constant";
 import { cleanSummary } from "../Constant";
 import { RecipeCard } from "../components/RecipeCard";
+import { doc, updateDoc, arrayUnion, getDocs, query, where, collection } from "firebase/firestore";
+import { auth, db } from "../config/FirebaseConfig";
+import { Alert } from "react-native";
 
 export const RecipeDetailScreen = ({ navigation, route }) => {
   const { id } = route.params;
@@ -28,28 +31,76 @@ export const RecipeDetailScreen = ({ navigation, route }) => {
   const [nutritionExpand, setNutritionExpand] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showTitle, setShowTitle] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  useEffect(() => {
+    const checkIfFavorite = async () => {
+      if (!auth.currentUser) return;
+  
+      const q = query(collection(db, "members"), where("email", "==", auth.currentUser.email));
+      const snapshot = await getDocs(q);
+      const userDoc = snapshot.docs[0];
+  
+      if (userDoc) {
+        const data = userDoc.data();
+        const favorites = data.favorites || [];
+        setIsFavorite(favorites.includes(id));
+      }
+    };
+  
+    checkIfFavorite();
+  }, [id]);
 
   //set nav bar buttons
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => {
+        const handleFavorite = async () => {
+          try {
+            const q = query(collection(db, "members"), where("email", "==", auth.currentUser.email));
+            const snapshot = await getDocs(q);
+            const userDoc = snapshot.docs[0];
+        
+            if (userDoc) {
+              const userDocRef = doc(db, "members", userDoc.id); // ✅ this creates the correct reference
+              const data = userDoc.data();
+              const currentFavorites = data.favorites || [];
+        
+              let updatedFavorites;
+        
+              if (currentFavorites.includes(id)) {
+                updatedFavorites = currentFavorites.filter((fid) => fid !== id);
+                setIsFavorite(false);
+              } else {
+                updatedFavorites = [...currentFavorites, id];
+                setIsFavorite(true);
+              }
+        
+              await updateDoc(userDocRef, { favorites: updatedFavorites });
+            }
+          } catch (err) {
+            Alert.alert("Failed", "Unable to update favorites");
+            console.error("Favorite error:", err);
+          }
+        };
+  
         return (
           <View style={styles.navBarButtonsContainer}>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => {}}>
+              <Ionicons name="share-social-outline" size={20} color={Colors.red} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleFavorite}>
               <Ionicons
-                name="share-social-outline"
+                name={isFavorite ? "bookmark" : "bookmark-outline"}
                 size={20}
                 color={Colors.red}
               />
-            </TouchableOpacity>
-            <TouchableOpacity>
-              <Ionicons name="bookmark-outline" size={20} color={Colors.red} />
             </TouchableOpacity>
           </View>
         );
       },
     });
-  }, []);
+  }, [navigation, isFavorite]);
 
   //set title
   useEffect(() => {
