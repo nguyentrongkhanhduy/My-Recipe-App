@@ -55,7 +55,7 @@ export const RecipeGrid = ({ recipe, onPressRecipe }) => {
           ? `${Math.floor(recipe.readyInMinutes / 60)} h ${
               recipe.readyInMinutes % 60
             } mins`
-          : `${recipe.readyInMinutes} mins`}
+          : `${recipe.readyInMinutes} mins`} • 👍 {recipe.aggregateLikes}
       </Text>
       <Text style={styles.recipeTitle}>{recipe.title}</Text>
       <Caption />
