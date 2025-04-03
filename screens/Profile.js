@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,21 +6,17 @@ import {
   TouchableOpacity,
   TextInput,
   FlatList,
-  Image,
   Alert,
   Dimensions,
 } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../config/FirebaseConfig";
-import { SPOONACULAR_API_KEY } from "@env";
 import {
   useSafeAreaInsets,
   SafeAreaProvider,
   SafeAreaView,
 } from "react-native-safe-area-context";
-import axios from "axios";
 import Colors from "../Constant";
 import { RecipeGrid } from "../components/RecipeGrid";
 
@@ -34,51 +30,28 @@ export const Profile = ({ navigation }) => {
   const cardWidth = (screenWidth - 30) / 2;
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
-    return unsubscribe;
+    return unsubscribeAuth;
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      const fetchUserData = async () => {
-        if (!user) return;
+  useEffect(() => {
+    if (!user) return;
 
-        const q = query(
-          collection(db, "members"),
-          where("email", "==", user.email)
-        );
-        const snapshot = await getDocs(q);
-        const userDoc = snapshot.docs[0];
+    const q = query(collection(db, "members"), where("email", "==", user.email));
+    const unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
+      const userDoc = snapshot.docs[0];
+      if (userDoc) {
+        const userData = userDoc.data();
+        setDisplayName(userData.displayName);
+        const favoriteRecipes = userData.favorites || [];
+        setSavedRecipes(favoriteRecipes);
+      }
+    });
 
-        if (userDoc) {
-          const userData = userDoc.data();
-          console.log("userData from Firestore:", userData);
-          setDisplayName(userData.displayName);
-          const favoriteIds = userData.favorites || [];
-
-          const fetchedRecipes = await Promise.all(
-            favoriteIds.map(async (id) => {
-              try {
-                const res = await axios.get(
-                  `https://api.spoonacular.com/recipes/${id}/information?apiKey=${SPOONACULAR_API_KEY}`
-                );
-                return res.data;
-              } catch (err) {
-                console.error("Failed to fetch recipe:", err);
-                return null;
-              }
-            })
-          );
-
-          setSavedRecipes(fetchedRecipes.filter((r) => r !== null));
-        }
-      };
-
-      fetchUserData();
-    }, [user])
-  );
+    return unsubscribeSnapshot;
+  }, [user]);
 
   if (!user) {
     return (
@@ -97,8 +70,8 @@ export const Profile = ({ navigation }) => {
     );
   }
 
-  const filteredRecipes = savedRecipes.filter((r) =>
-    r.title.toLowerCase().includes(queryText.trim().toLowerCase())
+  const filteredRecipes = savedRecipes.filter(
+    (r) => r.title && r.title.toLowerCase().includes(queryText.trim().toLowerCase())
   );
 
   return (
@@ -107,7 +80,6 @@ export const Profile = ({ navigation }) => {
         style={{
           flex: 1,
           backgroundColor: "#fff",
-          
         }}
       >
         <FlatList
@@ -129,24 +101,20 @@ export const Profile = ({ navigation }) => {
                 <TouchableOpacity
                   style={styles.logoutButton}
                   onPress={() => {
-                    Alert.alert(
-                      "Log Out",
-                      "Are you sure you want to log out?",
-                      [
-                        { text: "Cancel", style: "cancel" },
-                        {
-                          text: "Log Out",
-                          style: "destructive",
-                          onPress: () => {
-                            auth
-                              .signOut()
-                              .catch((err) =>
-                                console.error("Logout error:", err.message)
-                              );
-                          },
+                    Alert.alert("Log Out", "Are you sure you want to log out?", [
+                      { text: "Cancel", style: "cancel" },
+                      {
+                        text: "Log Out",
+                        style: "destructive",
+                        onPress: () => {
+                          auth
+                            .signOut()
+                            .catch((err) =>
+                              console.error("Logout error:", err.message)
+                            );
                         },
-                      ]
-                    );
+                      },
+                    ]);
                   }}
                 >
                   <Text style={styles.logoutButtonText}>Log Out</Text>
@@ -286,19 +254,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     fontSize: 16,
   },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 10,
-    marginBottom: 16,
-    borderColor: "#ddd",
-    borderWidth: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
   logoutButton: {
     position: "absolute",
     top: 15,
@@ -309,14 +264,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     zIndex: 10,
   },
-
   logoutButtonText: {
     color: "#fff",
     fontWeight: "bold",
     fontSize: 14,
   },
-  recipeText: { marginTop: 8, color: "#444", fontSize: 12 },
-  recipeTitle: { fontWeight: "bold", marginTop: 5, fontSize: 14 },
   clearButton: {
     position: "absolute",
     right: 25,

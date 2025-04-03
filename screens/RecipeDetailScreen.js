@@ -37,14 +37,19 @@ export const RecipeDetailScreen = ({ navigation, route }) => {
     const checkIfFavorite = async () => {
       if (!auth.currentUser) return;
   
-      const q = query(collection(db, "members"), where("email", "==", auth.currentUser.email));
+      const q = query(
+        collection(db, "members"),
+        where("email", "==", auth.currentUser.email)
+      );
       const snapshot = await getDocs(q);
       const userDoc = snapshot.docs[0];
   
       if (userDoc) {
         const data = userDoc.data();
         const favorites = data.favorites || [];
-        setIsFavorite(favorites.includes(id));
+  
+        const isFav = favorites.some((recipe) => recipe.id === id);
+        setIsFavorite(isFav);
       }
     };
   
@@ -57,27 +62,76 @@ export const RecipeDetailScreen = ({ navigation, route }) => {
       headerRight: () => {
         const handleFavorite = async () => {
           try {
-            const q = query(collection(db, "members"), where("email", "==", auth.currentUser.email));
+            // 🔒 Block if not logged in
+            if (!auth.currentUser) {
+              Alert.alert(
+                "Not logged in",
+                "Please log in to save recipes to favorites.",
+                [
+                  {
+                    text: "Cancel",
+                    style: "cancel",
+                  },
+                  {
+                    text: "Log In",
+                    onPress: () => navigation.navigate("ProfileTab", { screen: "SignIn" }),
+                  },
+                ]
+              );
+              return;
+            }
+        
+            const q = query(
+              collection(db, "members"),
+              where("email", "==", auth.currentUser.email)
+            );
             const snapshot = await getDocs(q);
             const userDoc = snapshot.docs[0];
         
-            if (userDoc) {
-              const userDocRef = doc(db, "members", userDoc.id);
-              const data = userDoc.data();
-              const currentFavorites = data.favorites || [];
+            if (!userDoc) return;
         
-              let updatedFavorites;
+            const userDocRef = doc(db, "members", userDoc.id);
+            const data = userDoc.data();
+            const currentFavorites = data.favorites || [];
         
-              if (currentFavorites.includes(id)) {
-                updatedFavorites = currentFavorites.filter((fid) => fid !== id);
-                setIsFavorite(false);
-              } else {
-                updatedFavorites = [...currentFavorites, id];
-                setIsFavorite(true);
-              }
+            const isAlreadyFavorite = currentFavorites.some(
+              (fav) => fav.id === recipeDetail.id
+            );
         
-              await updateDoc(userDocRef, { favorites: updatedFavorites });
+            // If recipe isn't fully loaded, block it
+            if (
+              !recipeDetail.id ||
+              !recipeDetail.title ||
+              !recipeDetail.image
+            ) {
+              Alert.alert(
+                "Recipe not ready",
+                "Recipe details are not fully loaded yet."
+              );
+              return;
             }
+        
+            const minimalRecipe = {
+              id: recipeDetail.id,
+              title: recipeDetail.title,
+              image: recipeDetail.image,
+              readyInMinutes: recipeDetail.readyInMinutes,
+              aggregateLikes: recipeDetail.aggregateLikes,
+            };
+        
+            let updatedFavorites;
+        
+            if (isAlreadyFavorite) {
+              updatedFavorites = currentFavorites.filter(
+                (fav) => fav.id !== recipeDetail.id
+              );
+              setIsFavorite(false);
+            } else {
+              updatedFavorites = [...currentFavorites, minimalRecipe];
+              setIsFavorite(true);
+            }
+        
+            await updateDoc(userDocRef, { favorites: updatedFavorites });
           } catch (err) {
             Alert.alert("Failed", "Unable to update favorites");
             console.error("Favorite error:", err);
@@ -100,7 +154,7 @@ export const RecipeDetailScreen = ({ navigation, route }) => {
         );
       },
     });
-  }, [navigation, isFavorite]);
+  }, [navigation, isFavorite, recipeDetail]);
 
   //set title
   useEffect(() => {
