@@ -28,10 +28,6 @@ A cross-platform mobile app that allows users to search for recipes by ingredien
 ## Installation
 
 1. Clone this repo
-```bash
-   git clone https://github.com/your-username/my-recipe-app.git
-   cd my-recipe-app
-```
 2.	Install dependencies:
 ```bash
   npm install
