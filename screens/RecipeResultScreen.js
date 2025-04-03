@@ -7,6 +7,7 @@ import {
   FlatList,
   Dimensions,
   ScrollView,
+  Platform,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -29,6 +30,7 @@ import {
   intolerances,
 } from "../Constant";
 import { RecipeGrid } from "../components/RecipeGrid";
+import { NUMBER_OF_RESULT } from "../Constant";
 
 export const RecipeResultScreen = ({ navigation, route }) => {
   const paramList = useSelector((state) => state.params.listOfParams);
@@ -138,6 +140,7 @@ export const RecipeResultScreen = ({ navigation, route }) => {
           </View>
         );
       },
+      headerTitleAlign: "center",
     });
   }, [searchText]);
 
@@ -159,7 +162,7 @@ export const RecipeResultScreen = ({ navigation, route }) => {
     debounce((text) => {
       axios
         .get(
-          `https://api.spoonacular.com/recipes/autocomplete?apiKey=${SPOONACULAR_API_KEY}&number=5&query=${text}`
+          `https://api.spoonacular.com/recipes/autocomplete?apiKey=${SPOONACULAR_API_KEY}&number=${NUMBER_OF_RESULT}&query=${text}`
         )
         .then((response) => {
           setAutocompleteText(response.data);
@@ -175,7 +178,7 @@ export const RecipeResultScreen = ({ navigation, route }) => {
   useEffect(() => {
     axios
       .get(
-        `https://api.spoonacular.com/recipes/complexSearch?apiKey=${SPOONACULAR_API_KEY}&number=5&addRecipeInformation=true&${flattenParams()}`
+        `https://api.spoonacular.com/recipes/complexSearch?apiKey=${SPOONACULAR_API_KEY}&number=${NUMBER_OF_RESULT}&addRecipeInformation=true&${flattenParams()}`
       )
       .then((response) => {
         setRecipes(response.data.results);
@@ -435,14 +438,14 @@ const styles = StyleSheet.create({
 
   searchBarContainer: {
     flexDirection: "row",
-    width: "100%",
+    width: Platform.OS === "android" ? "85%" : "100%",
     justifyContent: "flex-start",
     alignItems: "center",
     borderWidth: 2,
-    borderRadius: 20,
+    borderRadius: Platform.OS === "android" ? 30 : 20,
     borderColor: Colors.darkGray,
     paddingHorizontal: 8,
-    paddingVertical: 8,
+    paddingVertical: Platform.OS === "android" ? 0 : 8,
   },
   searchPlaceholderText: {
     fontSize: 16,

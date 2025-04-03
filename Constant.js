@@ -4,7 +4,7 @@ const Colors = {
   red: "#e50753",
   lightGray: "#D3D3D3",
   darkGray: "#7f7f7f",
-  lighterGray: "#ececec"
+  lighterGray: "#ececec",
 };
 
 export default Colors;
@@ -101,3 +101,5 @@ export const intolerances = [
   { label: "Tree Nut", value: "tree nut" },
   { label: "Wheat", value: "wheat" },
 ];
+
+export const NUMBER_OF_RESULT = "10";

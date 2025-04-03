@@ -14,6 +14,7 @@ import axios from "axios";
 
 import Colors from "../Constant";
 import { RecipeGrid } from "../components/RecipeGrid";
+import { NUMBER_OF_RESULT } from "../Constant";
 
 export const RecipeListScreen = ({ navigation, route }) => {
   const [recipes, setRecipes] = useState([]);
@@ -38,6 +39,7 @@ export const RecipeListScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         );
       },
+      headerTitleAlign: "center",
     });
   }, []);
 
@@ -45,7 +47,7 @@ export const RecipeListScreen = ({ navigation, route }) => {
   useEffect(() => {
     axios
       .get(
-        `https://api.spoonacular.com/recipes/complexSearch?apiKey=${SPOONACULAR_API_KEY}&number=4&addRecipeInformation=true`
+        `https://api.spoonacular.com/recipes/complexSearch?apiKey=${SPOONACULAR_API_KEY}&number=${NUMBER_OF_RESULT}&addRecipeInformation=true`
       )
       .then((response) => {
         setRecipes(response.data.results);

@@ -8,6 +8,7 @@ import {
   Image,
   Dimensions,
   ScrollView,
+  Platform,
 } from "react-native";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
@@ -94,6 +95,7 @@ export const RecipeSearchScreen = ({ navigation, route }) => {
           </View>
         );
       },
+      headerTitleAlign: "center",
     });
   }, [searchText]);
 
@@ -360,14 +362,14 @@ const styles = StyleSheet.create({
 
   searchBarContainer: {
     flexDirection: "row",
-    width: "105%",
+    width: Platform.OS === "android" ? "85%" : "105%",
     justifyContent: "flex-start",
     alignItems: "center",
     borderWidth: 2,
-    borderRadius: 20,
+    borderRadius: Platform.OS === "android" ? 30 : 20,
     borderColor: Colors.darkGray,
     paddingHorizontal: 8,
-    paddingVertical: 8,
+    paddingVertical: Platform.OS === "android" ? 0 : 8,
   },
   searchPlaceholderText: {
     fontSize: 16,
