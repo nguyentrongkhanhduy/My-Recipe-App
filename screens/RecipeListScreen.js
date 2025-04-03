@@ -45,7 +45,7 @@ export const RecipeListScreen = ({ navigation, route }) => {
   useEffect(() => {
     axios
       .get(
-        `https://api.spoonacular.com/recipes/complexSearch?apiKey=${SPOONACULAR_API_KEY}&number=1&addRecipeInformation=true`
+        `https://api.spoonacular.com/recipes/complexSearch?apiKey=${SPOONACULAR_API_KEY}&number=4&addRecipeInformation=true`
       )
       .then((response) => {
         setRecipes(response.data.results);
@@ -89,6 +89,7 @@ export const RecipeListScreen = ({ navigation, route }) => {
       <FlatList
         data={recipes}
         keyExtractor={(recipe) => recipe.id.toString()}
+        showsVerticalScrollIndicator={false}
         renderItem={(recipe) => {
           return (
             <RecipeGrid

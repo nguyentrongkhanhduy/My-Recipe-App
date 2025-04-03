@@ -15,9 +15,14 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../config/FirebaseConfig";
 import { SPOONACULAR_API_KEY } from "@env";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  useSafeAreaInsets,
+  SafeAreaProvider,
+  SafeAreaView,
+} from "react-native-safe-area-context";
 import axios from "axios";
 import Colors from "../Constant";
+import { RecipeGrid } from "../components/RecipeGrid";
 
 export const Profile = ({ navigation }) => {
   const [user, setUser] = useState(null);
@@ -39,17 +44,20 @@ export const Profile = ({ navigation }) => {
     useCallback(() => {
       const fetchUserData = async () => {
         if (!user) return;
-  
-        const q = query(collection(db, "members"), where("email", "==", user.email));
+
+        const q = query(
+          collection(db, "members"),
+          where("email", "==", user.email)
+        );
         const snapshot = await getDocs(q);
         const userDoc = snapshot.docs[0];
-  
+
         if (userDoc) {
           const userData = userDoc.data();
-          console.log("✅ userData from Firestore:", userData);
+          console.log("userData from Firestore:", userData);
           setDisplayName(userData.displayName);
           const favoriteIds = userData.favorites || [];
-  
+
           const fetchedRecipes = await Promise.all(
             favoriteIds.map(async (id) => {
               try {
@@ -63,11 +71,11 @@ export const Profile = ({ navigation }) => {
               }
             })
           );
-  
+
           setSavedRecipes(fetchedRecipes.filter((r) => r !== null));
         }
       };
-  
+
       fetchUserData();
     }, [user])
   );
@@ -94,106 +102,104 @@ export const Profile = ({ navigation }) => {
   );
 
   return (
-    <View
-      style={{ flex: 1, backgroundColor: "#fff", paddingTop: insets.top + 10 }}
-    >
-      <FlatList
-        data={filteredRecipes}
-        keyExtractor={(item) => item.id.toString()}
-        numColumns={2}
-        columnWrapperStyle={{
-          justifyContent: "space-between",
-          marginBottom: 16,
-        }}
-        contentContainerStyle={{
-          paddingBottom: 30,
+    <SafeAreaProvider>
+      <SafeAreaView
+        style={{
+          flex: 1,
           backgroundColor: "#fff",
-          paddingHorizontal: 10,
+          
         }}
-        ListHeaderComponent={
-          <>
-            <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-              <TouchableOpacity
-                style={styles.logoutButton}
-                onPress={() => {
-                  Alert.alert("Log Out", "Are you sure you want to log out?", [
-                    { text: "Cancel", style: "cancel" },
-                    {
-                      text: "Log Out",
-                      style: "destructive",
-                      onPress: () => {
-                        auth
-                          .signOut()
-                          .catch((err) =>
-                            console.error("Logout error:", err.message)
-                          );
-                      },
-                    },
-                  ]);
-                }}
-              >
-                <Text style={styles.logoutButtonText}>Log Out</Text>
-              </TouchableOpacity>
-
-              <View style={styles.headerContent}>
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>
-                    {displayName ? displayName[0] : "?"}
-                  </Text>
-                </View>
-                <Text style={styles.name}>{displayName}</Text>
-              </View>
-            </View>
-
-            <View style={styles.tabs}>
-              <Text style={styles.activeTab}>Saved Recipes</Text>
-            </View>
-
-            <View style={{ position: "relative", margin: 15 }}>
-              <TextInput
-                style={styles.search}
-                placeholder="Search Saved Recipes"
-                value={queryText}
-                onChangeText={setQueryText}
-              />
-              {queryText.length > 0 && (
+      >
+        <FlatList
+          data={filteredRecipes}
+          keyExtractor={(item) => item.id.toString()}
+          numColumns={2}
+          columnWrapperStyle={{
+            justifyContent: "space-between",
+          }}
+          contentContainerStyle={{
+            paddingBottom: 30,
+            backgroundColor: "#fff",
+            paddingHorizontal: 10,
+          }}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <>
+              <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
                 <TouchableOpacity
-                  style={styles.clearButton}
-                  onPress={() => setQueryText("")}
+                  style={styles.logoutButton}
+                  onPress={() => {
+                    Alert.alert(
+                      "Log Out",
+                      "Are you sure you want to log out?",
+                      [
+                        { text: "Cancel", style: "cancel" },
+                        {
+                          text: "Log Out",
+                          style: "destructive",
+                          onPress: () => {
+                            auth
+                              .signOut()
+                              .catch((err) =>
+                                console.error("Logout error:", err.message)
+                              );
+                          },
+                        },
+                      ]
+                    );
+                  }}
                 >
-                  <Text style={styles.clearButtonText}>×</Text>
+                  <Text style={styles.logoutButtonText}>Log Out</Text>
                 </TouchableOpacity>
-              )}
-            </View>
-          </>
-        }
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("RecipeDetailScreen", { id: item.id })
-            }
-          >
-            <View style={[styles.card, { width: cardWidth }]}>
-              <Image
-                source={{ uri: item.image }}
-                style={{ width: "100%", height: 140, borderRadius: 8 }}
-              />
-              <Text style={styles.recipeText}>
-                Ready in {item.readyInMinutes} mins • 👍 {item.aggregateLikes}
-              </Text>
-              <Text style={styles.recipeTitle} numberOfLines={2}>
-                {item.title}
-              </Text>
-            </View>
-          </TouchableOpacity>
+
+                <View style={styles.headerContent}>
+                  <View style={styles.avatar}>
+                    <Text style={styles.avatarText}>
+                      {displayName ? displayName[0] : "?"}
+                    </Text>
+                  </View>
+                  <Text style={styles.name}>{displayName}</Text>
+                </View>
+              </View>
+
+              <View style={styles.tabs}>
+                <Text style={styles.activeTab}>Saved Recipes</Text>
+              </View>
+
+              <View style={{ position: "relative", margin: 15 }}>
+                <TextInput
+                  style={styles.search}
+                  placeholder="Search Saved Recipes"
+                  value={queryText}
+                  onChangeText={setQueryText}
+                />
+                {queryText.length > 0 && (
+                  <TouchableOpacity
+                    style={styles.clearButton}
+                    onPress={() => setQueryText("")}
+                  >
+                    <Text style={styles.clearButtonText}>×</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </>
+          }
+          renderItem={({ item }) => (
+            <RecipeGrid
+              recipe={item}
+              onPressRecipe={() =>
+                navigation.navigate("RecipeDetailScreen", { id: item.id })
+              }
+            />
+          )}
+        />
+        {filteredRecipes.length === 0 && (
+          <View style={{ alignItems: "center", marginTop: 20 }}>
+            <Text style={{ color: "#888" }}>No recipes found.</Text>
+          </View>
         )}
-      />
-      {filteredRecipes.length === 0 && (
-        <View style={{ alignItems: "center", marginTop: 20 }}>
-          <Text style={{ color: "#888" }}>No recipes found.</Text>
-        </View>
-      )}
-    </View>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 };
 

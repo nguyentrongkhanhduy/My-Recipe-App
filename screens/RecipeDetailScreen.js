@@ -62,7 +62,7 @@ export const RecipeDetailScreen = ({ navigation, route }) => {
             const userDoc = snapshot.docs[0];
         
             if (userDoc) {
-              const userDocRef = doc(db, "members", userDoc.id); // ✅ this creates the correct reference
+              const userDocRef = doc(db, "members", userDoc.id);
               const data = userDoc.data();
               const currentFavorites = data.favorites || [];
         
