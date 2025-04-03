@@ -7,6 +7,7 @@ import {
   Image,
   Dimensions,
   ScrollView,
+  Share,
 } from "react-native";
 import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,7 +18,15 @@ import { SPOONACULAR_API_KEY } from "@env";
 import Colors from "../Constant";
 import { cleanSummary } from "../Constant";
 import { RecipeCard } from "../components/RecipeCard";
-import { doc, updateDoc, arrayUnion, getDocs, query, where, collection } from "firebase/firestore";
+import {
+  doc,
+  updateDoc,
+  arrayUnion,
+  getDocs,
+  query,
+  where,
+  collection,
+} from "firebase/firestore";
 import { auth, db } from "../config/FirebaseConfig";
 import { Alert } from "react-native";
 
@@ -36,23 +45,23 @@ export const RecipeDetailScreen = ({ navigation, route }) => {
   useEffect(() => {
     const checkIfFavorite = async () => {
       if (!auth.currentUser) return;
-  
+
       const q = query(
         collection(db, "members"),
         where("email", "==", auth.currentUser.email)
       );
       const snapshot = await getDocs(q);
       const userDoc = snapshot.docs[0];
-  
+
       if (userDoc) {
         const data = userDoc.data();
         const favorites = data.favorites || [];
-  
+
         const isFav = favorites.some((recipe) => recipe.id === id);
         setIsFavorite(isFav);
       }
     };
-  
+
     checkIfFavorite();
   }, [id]);
 
@@ -62,7 +71,6 @@ export const RecipeDetailScreen = ({ navigation, route }) => {
       headerRight: () => {
         const handleFavorite = async () => {
           try {
-            // 🔒 Block if not logged in
             if (!auth.currentUser) {
               Alert.alert(
                 "Not logged in",
@@ -74,30 +82,31 @@ export const RecipeDetailScreen = ({ navigation, route }) => {
                   },
                   {
                     text: "Log In",
-                    onPress: () => navigation.navigate("ProfileTab", { screen: "SignIn" }),
+                    onPress: () =>
+                      navigation.navigate("ProfileTab", { screen: "SignIn" }),
                   },
                 ]
               );
               return;
             }
-        
+
             const q = query(
               collection(db, "members"),
               where("email", "==", auth.currentUser.email)
             );
             const snapshot = await getDocs(q);
             const userDoc = snapshot.docs[0];
-        
+
             if (!userDoc) return;
-        
+
             const userDocRef = doc(db, "members", userDoc.id);
             const data = userDoc.data();
             const currentFavorites = data.favorites || [];
-        
+
             const isAlreadyFavorite = currentFavorites.some(
               (fav) => fav.id === recipeDetail.id
             );
-        
+
             // If recipe isn't fully loaded, block it
             if (
               !recipeDetail.id ||
@@ -110,7 +119,7 @@ export const RecipeDetailScreen = ({ navigation, route }) => {
               );
               return;
             }
-        
+
             const minimalRecipe = {
               id: recipeDetail.id,
               title: recipeDetail.title,
@@ -118,9 +127,9 @@ export const RecipeDetailScreen = ({ navigation, route }) => {
               readyInMinutes: recipeDetail.readyInMinutes,
               aggregateLikes: recipeDetail.aggregateLikes,
             };
-        
+
             let updatedFavorites;
-        
+
             if (isAlreadyFavorite) {
               updatedFavorites = currentFavorites.filter(
                 (fav) => fav.id !== recipeDetail.id
@@ -130,18 +139,40 @@ export const RecipeDetailScreen = ({ navigation, route }) => {
               updatedFavorites = [...currentFavorites, minimalRecipe];
               setIsFavorite(true);
             }
-        
+
             await updateDoc(userDocRef, { favorites: updatedFavorites });
           } catch (err) {
             Alert.alert("Failed", "Unable to update favorites");
             console.error("Favorite error:", err);
           }
         };
-  
+
+        const handleShare = async () => {
+          try {
+            if (!recipeDetail.title || !recipeDetail.sourceUrl) {
+              Alert.alert("Recipe not ready to share.");
+              return;
+            }
+
+            await Share.share({
+              title: recipeDetail.title,
+              message: `${recipeDetail.title}\nCheck out this recipe: ${recipeDetail.sourceUrl}`,
+              url: recipeDetail.sourceUrl, // for iOS
+            });
+          } catch (error) {
+            Alert.alert("Sharing failed", error.message);
+            console.error("Share error:", error);
+          }
+        };
+
         return (
           <View style={styles.navBarButtonsContainer}>
-            <TouchableOpacity onPress={() => {}}>
-              <Ionicons name="share-social-outline" size={20} color={Colors.red} />
+            <TouchableOpacity onPress={handleShare}>
+              <Ionicons
+                name="share-social-outline"
+                size={20}
+                color={Colors.red}
+              />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleFavorite}>
               <Ionicons
